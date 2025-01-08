@@ -1,0 +1,48 @@
+name: highload
+services:
+  db:
+    image: postgres
+    container_name: db
+    environment:
+      POSTGRES_USER: ${PG_USERNAME}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5      
+    restart: always
+    # set shared memory limit when using docker-compose
+    shm_size: 128mb
+    volumes:
+       - ./data:/var/lib/postgresql/data 
+    ports:
+      - 6543:5432     
+    #volumes:
+    #  - type: tmpfs
+    #    target: /dev/shm
+    #    tmpfs:
+    #      size: 134217728 # 128*2^20 bytes = 128Mb    
+    # or set shared memory limit when deploy via swarm stack
+    #volumes:
+    #  - type: tmpfs
+    #    target: /dev/shm
+    #    tmpfs:
+    #      size: 134217728 # 128*2^20 bytes = 128Mb
+  api:
+    build: 
+      context: ./..
+      dockerfile: ./src/Otus.Highload.Api/Dockerfile
+    image: highload-api
+    container_name: api
+    environment:
+      - ASPNETCORE_ENVIRONMENT="Development"
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__Default=User ID=${PG_USERNAME};Password=${PG_PASSWORD};Host=host.docker.internal;Port=6543;Database=${PG_USERNAME};Pooling=true;
+    ports:
+      - 5000:80
+    depends_on:
+      db:
+        condition: service_healthy 
+    
