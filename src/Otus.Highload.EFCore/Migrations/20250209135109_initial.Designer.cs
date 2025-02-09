@@ -12,7 +12,7 @@ using Otus.Highload.EFCore;
 namespace Otus.Highload.EFCore.Migrations
 {
     [DbContext(typeof(HighloadDbContext))]
-    [Migration("20250209094050_initial")]
+    [Migration("20250209135109_initial")]
     partial class initial
     {
         /// <inheritdoc />

@@ -137,8 +137,8 @@ namespace Otus.Highload.Controllers
             //TODO: Uncomment the next line to return response 503 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(503, default(InlineResponse500));
 
-            const string sql = @"SELECT * FROM users WHERE name = @p0 AND surname = @p1";
-            var result = _repository.Query<UserEntity>(sql, firstName, lastName).Select(x => new User
+            const string sql = @"SELECT * FROM users WHERE name LIKE @p0 AND surname LIKE @p1 ORDER BY id";
+            var result = _repository.Query<UserEntity>(sql, $"{firstName}%", $"{lastName}%").Select(x => new User
             {
                 Id = x.Id.ToString(),
                 Biography = x.Biography,

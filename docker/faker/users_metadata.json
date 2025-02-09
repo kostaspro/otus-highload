@@ -1,0 +1,39 @@
+[
+  {
+    "column": "name",
+    "udt": "first_name",
+    "is_default": false
+  },
+  {
+    "column": "surname",
+    "udt": "last_name",
+    "is_default": false
+  },
+  {
+    "column": "city",
+    "udt": "city",
+    "is_default": false
+  },
+  {
+    "column": "gender",
+    "options": [
+      "1",
+      "2"
+    ]
+  },
+  {
+    "column": "date_birth",
+    "udt": "date_of_birth",
+    "is_default": false
+  },
+  {
+    "column": "biography",
+    "udt": "address"
+  },
+  {
+    "column": "password",
+    "options": [
+      "7LJSBEteoPZ57njsGhKQRznikE0="
+    ]
+  }   
+]

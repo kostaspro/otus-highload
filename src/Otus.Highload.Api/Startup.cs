@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,6 +25,7 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using Otus.Highload.EFCore;
+using Otus.Highload.EFCore.Migrations;
 using Otus.Highload.Filters;
 using Otus.Highload.Security;
 using Otus.Highload.Users;
@@ -89,7 +91,8 @@ namespace Otus.Highload
                     options.EnableSensitiveDataLogging();
                     options
                         .UseNpgsql(Configuration.GetConnectionString("Default"))
-                        .UseSnakeCaseNamingConvention();
+                        .UseSnakeCaseNamingConvention()
+                        .ReplaceService<IHistoryRepository, SnakeCaseHistoryRepository>();
                 }
             );
 
