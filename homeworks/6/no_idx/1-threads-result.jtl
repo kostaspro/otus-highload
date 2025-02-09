@@ -1,0 +1,2 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1739123221374,216,/user/search,200,OK,OTUS 1-1,text,true,,553288,484,1,1,http://localhost:5000/user/search?firstName=%D0%A4&lastName=%D0%92,215,0,9

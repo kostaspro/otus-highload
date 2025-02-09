@@ -1,0 +1,11 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1739125886600,28,/user/search,200,OK,OTUS 1-1,text,true,,553288,484,1,1,http://localhost:5000/user/search?firstName=%D0%A4&lastName=%D0%92,27,0,10
+1739125886659,16,/user/search,200,OK,OTUS 1-2,text,true,,553288,484,1,1,http://localhost:5000/user/search?firstName=%D0%A4&lastName=%D0%92,14,0,1
+1739125886761,17,/user/search,200,OK,OTUS 1-3,text,true,,553288,484,1,1,http://localhost:5000/user/search?firstName=%D0%A4&lastName=%D0%92,15,0,0
+1739125886860,17,/user/search,200,OK,OTUS 1-4,text,true,,553288,484,1,1,http://localhost:5000/user/search?firstName=%D0%A4&lastName=%D0%92,15,0,0
+1739125886960,16,/user/search,200,OK,OTUS 1-5,text,true,,553288,484,1,1,http://localhost:5000/user/search?firstName=%D0%A4&lastName=%D0%92,15,0,0
+1739125887062,32,/user/search,200,OK,OTUS 1-6,text,true,,553288,484,1,1,http://localhost:5000/user/search?firstName=%D0%A4&lastName=%D0%92,30,0,1
+1739125887160,36,/user/search,200,OK,OTUS 1-7,text,true,,553288,484,1,1,http://localhost:5000/user/search?firstName=%D0%A4&lastName=%D0%92,33,0,1
+1739125887261,19,/user/search,200,OK,OTUS 1-8,text,true,,553288,484,1,1,http://localhost:5000/user/search?firstName=%D0%A4&lastName=%D0%92,17,0,1
+1739125887361,23,/user/search,200,OK,OTUS 1-9,text,true,,553288,484,1,1,http://localhost:5000/user/search?firstName=%D0%A4&lastName=%D0%92,20,0,1
+1739125887462,24,/user/search,200,OK,OTUS 1-10,text,true,,553288,484,1,1,http://localhost:5000/user/search?firstName=%D0%A4&lastName=%D0%92,22,0,1

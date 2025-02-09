@@ -1,0 +1,1 @@
+call jmeter -g 1-threads-result.jtl 10-threads-result.jtl 100-threads-result.jtl 1000-threads-result.jtl -o report-without-idx
