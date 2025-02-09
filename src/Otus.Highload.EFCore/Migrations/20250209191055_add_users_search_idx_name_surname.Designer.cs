@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Otus.Highload.EFCore;
@@ -11,9 +12,11 @@ using Otus.Highload.EFCore;
 namespace Otus.Highload.EFCore.Migrations
 {
     [DbContext(typeof(HighloadDbContext))]
-    partial class HighloadDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250209191055_add_users_search_idx_name_surname")]
+    partial class add_users_search_idx_name_surname
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
