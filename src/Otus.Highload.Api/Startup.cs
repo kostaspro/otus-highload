@@ -87,9 +87,9 @@ namespace Otus.Highload
             services.AddDbContext<HighloadDbContext>(options =>
                 {
                     options.EnableSensitiveDataLogging();
-                    options.UseNpgsql(
-                        Configuration.GetConnectionString("Default")
-                    );
+                    options
+                        .UseNpgsql(Configuration.GetConnectionString("Default"))
+                        .UseSnakeCaseNamingConvention();
                 }
             );
 

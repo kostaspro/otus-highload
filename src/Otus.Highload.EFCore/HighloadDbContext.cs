@@ -14,6 +14,7 @@ namespace Otus.Highload.EFCore
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<UserEntity>()
+                .ToTable(nameof(Users).ToLower())
                 .Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()");
         }
     }

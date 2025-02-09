@@ -16,7 +16,7 @@
         {
             var password = _passwordHasher.Hash(pass);
             var id = Guid.NewGuid();
-            const string sql = @"INSERT INTO public.""Users"" (""Id"", ""Name"", ""Surname"", ""DateBirth"", ""Gender"", ""Biography"", ""City"",""Password"")
+            const string sql = @"INSERT INTO users (id, name, surname, date_birth, gender, biography, city, password)
 VALUES(@p0, @p1, @p2, @p3, 1, @p4, @p5, @p6);";
             _repository.Execute(sql, id, firstName, secondName, birthdate, biography, city, password);
             return id;
@@ -25,7 +25,7 @@ VALUES(@p0, @p1, @p2, @p3, 1, @p4, @p5, @p6);";
         public bool Find(string id, string pass)
         {
             var password = _passwordHasher.Hash(pass);
-            const string sql = @"SELECT 1 FROM public.""Users"" WHERE ""Id""= @p0 AND ""Password"" = @p1";
+            const string sql = "SELECT 1 FROM users WHERE id = @p0 AND password = @p1";
             var res = _repository.Query<int>(sql, Guid.Parse(id), password).Any();
             return res;
         }
