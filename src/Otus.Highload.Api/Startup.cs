@@ -24,6 +24,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using Otus.Highload.Data;
 using Otus.Highload.EFCore;
 using Otus.Highload.EFCore.Migrations;
 using Otus.Highload.Filters;
@@ -90,13 +91,14 @@ namespace Otus.Highload
                 {
                     options.EnableSensitiveDataLogging();
                     options
-                        .UseNpgsql(Configuration.GetConnectionString("Default"))
+                        //.UseNpgsql(Configuration.GetConnectionString("Default"))
                         .UseSnakeCaseNamingConvention()
                         .ReplaceService<IHistoryRepository, SnakeCaseHistoryRepository>();
                 }
             );
 
             services.AddTransient<IRepository, Repository>();
+            services.AddScoped<ReplicationRoutingDataSourceSelector>();
             services.AddSingleton<IPasswordHasher, PasswordHasher>();
             services.AddTransient<UserManager>();
             services.AddTransient<LoginManager>();

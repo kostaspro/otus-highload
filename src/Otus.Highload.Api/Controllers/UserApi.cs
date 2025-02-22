@@ -75,6 +75,7 @@ namespace Otus.Highload.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(User), description: "Успешное получение анкеты пользователя")]
         [SwaggerResponse(statusCode: 500, type: typeof(InlineResponse500), description: "Ошибка сервера")]
         [SwaggerResponse(statusCode: 503, type: typeof(InlineResponse500), description: "Ошибка сервера")]
+        [ReplicationRoutingDataSource(ReadOnly = true)]
         public virtual IActionResult Get([FromRoute][Required] string id)
         {
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
@@ -123,6 +124,7 @@ namespace Otus.Highload.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(List<User>), description: "Успешные поиск пользователя")]
         [SwaggerResponse(statusCode: 500, type: typeof(InlineResponse500), description: "Ошибка сервера")]
         [SwaggerResponse(statusCode: 503, type: typeof(InlineResponse500), description: "Ошибка сервера")]
+        [ReplicationRoutingDataSource(ReadOnly = true)]
         public virtual IActionResult Search([FromQuery][Required] string firstName, [FromQuery][Required] string lastName)
         {
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
