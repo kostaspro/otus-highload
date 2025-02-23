@@ -1,0 +1,1 @@
+call jmeter -g 1000-threads-result.jtl -o report -p reportgenerator.properties

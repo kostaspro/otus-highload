@@ -1,0 +1,1 @@
+call jmeter -Jthreads=5000 -n -t ..\test_search.jmx -l 5000-threads-result.jtl
