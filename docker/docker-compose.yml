@@ -1,4 +1,8 @@
 name: highload
+
+include:
+ - patroni/docker-compose.yml
+
 services:
   db:
     image: postgres
@@ -6,7 +10,7 @@ services:
     environment:
       POSTGRES_USER: ${PG_USERNAME}
       POSTGRES_PASSWORD: ${PG_PASSWORD}
-      PGDATA: /var/lib/postgresql/data/pgdata
+      # PGDATA: /var/lib/postgresql/data/pgdata
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
       interval: 10s
@@ -15,11 +19,13 @@ services:
     restart: always
     # set shared memory limit when using docker-compose
     shm_size: 128mb
-    volumes:
-       - ./data:/var/lib/postgresql/data 
+    # volumes:
+       # - ./data:/var/lib/postgresql/data 
     ports:
       - 6543:5432
-  api:
+    profiles: [postgres]      
+  
+  api: &api
     build: 
       context: ./..
       dockerfile: ./src/Otus.Highload.Api/Dockerfile
@@ -28,24 +34,47 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT="Development"
       - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__Default=User ID=${PG_USERNAME};Password=${PG_PASSWORD};Host=${PG_HOST};Port=${PG_PORT};Database=${PG_USERNAME};Pooling=true;
+      - ConnectionStrings__Default=User ID=${PG_USERNAME};Password=${PG_PASSWORD};Host=${PG_HOST};Port=${PG_PORT};Database=${PG_USERNAME};Pooling=true;;
     ports:
       - 5000:80
+    profiles: [postgres]      
     depends_on:
       db:
-        condition: service_healthy
-      # users-loader:
-        # condition: service_completed_successfully
-  # users-loader:
-    # image: bledig/alpine-psqlclient:3
-    # container_name: users-loader
-    # command: psql postgresql://${PG_USERNAME}:${PG_PASSWORD}@${PG_HOST}:${PG_PORT}/${PG_USERNAME}  -a -f "/src/import_script.sql"
-    # volumes:
-       # - ./loader/import_users.sql:/src/import_script.sql 
-       # - ./loader/users_202502091738.csv:/src/data.csv     
-    # depends_on:
-      # db:
-        # condition: service_healthy        
+        condition: service_healthy     
+
+  api-highload:
+    <<: *api
+    container_name: api-highload
+    environment:
+      - ASPNETCORE_ENVIRONMENT="Development"
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__Default=User ID=${PG_USERNAME};Password=${PG_PASSWORD};Host=${PG_HOST};Port=${PG_PORT};Database=${PG_USERNAME};Pooling=true;
+      - ConnectionStrings__ReadOnly=User ID=${PG_USERNAME};Password=${PG_PASSWORD};Host=${PG_HOST};Port=${PG_SLAVE_PORT};Database=${PG_USERNAME};Pooling=true; 
+    profiles: [patroni]  
+    depends_on:
+      haproxy:
+        condition: service_healthy     
+  
+  users-loader: &loader
+    image: bledig/alpine-psqlclient:3
+    container_name: users-loader
+    command: psql postgresql://${PG_USERNAME}:${PG_PASSWORD}@${PG_HOST}:${PG_PORT}/${PG_USERNAME}  -a -f "/src/import_script.sql"
+    volumes:
+       - ./loader/import_users.sql:/src/import_script.sql 
+       - ./loader/users_202502091738.csv:/src/data.csv     
+    depends_on:
+      api:
+        condition: service_started
+    profiles: [postgres]         
+
+  users-loader-highload:
+    <<: *loader
+    container_name: users-loader-highload
+    depends_on:
+      api-highload:
+        condition: service_started
+    profiles: [patroni]         
+  
   # faker-users-table:
     # build: 
       # context: ./../tools/postgresql_faker
