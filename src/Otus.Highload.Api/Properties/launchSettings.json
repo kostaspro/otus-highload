@@ -3,12 +3,12 @@
     "Host": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "http://localhost:7000/swagger/",
+      "launchUrl": "http://localhost:5000/swagger/",
       "environmentVariables": {
-        "ASPNETCORE_URLS": "http://localhost:7000;https://localhost:7001",
+        "ASPNETCORE_URLS": "http://localhost:5000;https://localhost:5001",
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ConnectionStrings__Default": "User ID=postgres;Password=postgres;Host=localhost;Port=5000;Database=highload;Pooling=true;",
-        "ConnectionStrings__ReadOnly": "User ID=postgres;Password=postgres;Host=localhost;Port=5001;Database=highload;Pooling=true;"
+        //"ConnectionStrings__Default": "User ID=postgres;Password=postgres;Host=localhost;Port=5000;Database=highload;Pooling=true;",
+        //"ConnectionStrings__ReadOnly": "User ID=postgres;Password=postgres;Host=localhost;Port=5001;Database=highload;Pooling=true;"
       }
     },
     "Container (Dockerfile)": {

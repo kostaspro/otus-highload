@@ -1,3 +1,6 @@
+using System;
+using Hangfire;
+using Hangfire.States;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +26,14 @@ namespace Otus.Highload
             {
                 var db = scope.ServiceProvider.GetRequiredService<HighloadDbContext>();
                 db.Database.Migrate();
+            }
+
+            using (var scope = host.Services.CreateScope())
+            {
+                var manager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+                var jobId = "update_all_feed";
+                manager.AddOrUpdate<FeedManager>(jobId, x => x.UpdateAll(), Cron.Daily());
+                manager.Trigger(jobId);
             }
 
             host.Run();

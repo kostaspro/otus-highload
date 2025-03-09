@@ -2,6 +2,7 @@ name: highload
 
 include:
  - patroni/docker-compose.yml
+ - redis/docker-compose.yml 
 
 services:
   db:
@@ -34,9 +35,16 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT="Development"
       - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__Default=User ID=${PG_USERNAME};Password=${PG_PASSWORD};Host=${PG_HOST};Port=${PG_PORT};Database=${PG_USERNAME};Pooling=true;;
+      - ConnectionStrings__Default=User ID=${PG_USERNAME};Password=${PG_PASSWORD};Host=${PG_HOST};Port=${PG_PORT};Database=${PG_USERNAME};Pooling=true;
+      - ConnectionStrings__Redis=host.docker.internal
     ports:
       - 5000:80
+    healthcheck:
+      test: curl --fail http://localhost/health || exit 1
+      interval: 60s
+      retries: 5
+      start_period: 20s
+      timeout: 10s      
     profiles: [postgres]      
     depends_on:
       db:
@@ -55,16 +63,18 @@ services:
       haproxy:
         condition: service_healthy     
   
-  users-loader: &loader
+  data-loader: &loader
     image: bledig/alpine-psqlclient:3
-    container_name: users-loader
+    container_name: data-loader
     command: psql postgresql://${PG_USERNAME}:${PG_PASSWORD}@${PG_HOST}:${PG_PORT}/${PG_USERNAME}  -a -f "/src/import_script.sql"
     volumes:
-       - ./loader/import_users.sql:/src/import_script.sql 
-       - ./loader/users_202502091738.csv:/src/data.csv     
+       - ./loader/import_script.sql:/src/import_script.sql 
+       - ./loader/users_202502091738.zip:/src/users.zip
+       - ./loader/user_friends_202503091840.zip:/src/user_friends.zip       
+       - ./loader/posts_202503091841.zip:/src/posts.zip
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy          
     profiles: [postgres]         
 
   users-loader-highload:

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Otus.Highload.EFCore;
@@ -11,9 +12,11 @@ using Otus.Highload.EFCore;
 namespace Otus.Highload.EFCore.Migrations
 {
     [DbContext(typeof(HighloadDbContext))]
-    partial class HighloadDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250309095659_add_userfriends_posts")]
+    partial class add_userfriends_posts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

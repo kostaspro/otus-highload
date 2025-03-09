@@ -9,8 +9,12 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Hangfire;
+using Hangfire.Dashboard;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -18,6 +22,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -73,6 +78,9 @@ namespace Otus.Highload
                     };
                 });
 
+
+            services.AddHealthChecks().AddCheck("default", () => HealthCheckResult.Healthy());
+
             services
                 .AddMvc(options =>
                 {
@@ -103,6 +111,20 @@ namespace Otus.Highload
             services.AddTransient<UserManager>();
             services.AddTransient<LoginManager>();
             services.AddTransient<IJwtGenerator, JwtGenerator>();
+
+            services.AddTransient<FeedManager>();
+
+            services.AddHangfire(config =>
+                config.UsePostgreSqlStorage(c =>
+                    c.UseNpgsqlConnection(Configuration.GetConnectionString("Default"))));
+
+            services.AddHangfireServer();
+
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = Configuration.GetConnectionString("Redis");
+                options.InstanceName = "local";
+            });
 
             services
                 .AddSwaggerGen(c =>
@@ -167,6 +189,8 @@ namespace Otus.Highload
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseHealthChecks("/health");
+
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
@@ -197,6 +221,12 @@ namespace Otus.Highload
 
                 app.UseHsts();
             }
+
+            //app.UseHangfireServer();
+            app.UseHangfireDashboard(options: new DashboardOptions()
+            {
+                Authorization = new List<IDashboardAuthorizationFilter>()
+            });
         }
     }
 }
