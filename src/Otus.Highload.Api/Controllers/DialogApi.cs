@@ -11,24 +11,32 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Otus.Highload.Attributes;
+using Otus.Highload.Dialogs;
+using Otus.Highload.Extensions;
 using Otus.Highload.Models;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Otus.Highload.Controllers
-{ 
+{
     /// <summary>
     /// 
     /// </summary>
     [ApiController]
     [Authorize]
-    public class DefaultApiController : ControllerBase
-    { 
+    public class DialogApiController : ControllerBase
+    {
+        private readonly IRepository _repository;
+
+        public DialogApiController(IRepository repository)
+        {
+            _repository = repository;
+        }
         /// <summary>
-        /// 
+        /// Получение диалога между двумя пользователями
         /// </summary>
         /// <param name="userId"></param>
         /// <response code="200">Диалог между двумя пользователями</response>
@@ -38,14 +46,13 @@ namespace Otus.Highload.Controllers
         /// <response code="503">Ошибка сервера</response>
         [HttpGet]
         [Route("/dialog/{user_id}/list")]
-      //  [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
         [ValidateModelState]
-        [SwaggerOperation("DialogUserIdListGet")]
+        [SwaggerOperation("List")]
         [SwaggerResponse(statusCode: 200, type: typeof(List<DialogMessage>), description: "Диалог между двумя пользователями")]
         [SwaggerResponse(statusCode: 500, type: typeof(InlineResponse500), description: "Ошибка сервера")]
         [SwaggerResponse(statusCode: 503, type: typeof(InlineResponse500), description: "Ошибка сервера")]
-        public virtual IActionResult DialogUserIdListGet([FromRoute(Name = "user_id")]string userId)
-        { 
+        public virtual IActionResult List([FromRoute(Name = "user_id")] string userId)
+        {
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200, default(List<DialogMessage>));
 
@@ -60,17 +67,27 @@ namespace Otus.Highload.Controllers
 
             //TODO: Uncomment the next line to return response 503 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(503, default(InlineResponse500));
-            string exampleJson = null;
-            exampleJson = "[ {\n  \"from\" : \"from\",\n  \"text\" : \"Привет, как дела?\"\n}, {\n  \"from\" : \"from\",\n  \"text\" : \"Привет, как дела?\"\n} ]";
-            
-                        var example = exampleJson != null
-                        ? JsonConvert.DeserializeObject<List<DialogMessage>>(exampleJson)
-                        : default(List<DialogMessage>);            //TODO: Change the data returned
-            return new ObjectResult(example);
+
+            const string sql = @"SELECT * FROM dialogs WHERE (user_id = @p0 AND to_user_id = @p1) OR (user_id = @p1 AND to_user_id = @p0)";
+            var result = _repository.Query<DialogEntity>(sql, User.GetUserId(), Guid.Parse(userId))
+                .OrderBy(x => x.CreateDate).Select(x => new DialogMessage
+                {
+                    From = x.UserId.ToString(),
+                    To = x.ToUserId.ToString(),
+                    Text = x.Text
+                }).ToList();
+
+            //string exampleJson = null;
+            //exampleJson = "[ {\n  \"from\" : \"from\",\n  \"text\" : \"Привет, как дела?\"\n}, {\n  \"from\" : \"from\",\n  \"text\" : \"Привет, как дела?\"\n} ]";
+
+            //var example = exampleJson != null
+            //? JsonConvert.DeserializeObject<List<DialogMessage>>(exampleJson)
+            //: default(List<DialogMessage>);            //TODO: Change the data returned
+            return new ObjectResult(result);
         }
 
         /// <summary>
-        /// 
+        /// Отправка сообщения пользователю
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="body"></param>
@@ -81,13 +98,17 @@ namespace Otus.Highload.Controllers
         /// <response code="503">Ошибка сервера</response>
         [HttpPost]
         [Route("/dialog/{user_id}/send")]
-       // [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
+        // [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
         [ValidateModelState]
-        [SwaggerOperation("DialogUserIdSendPost")]
+        [SwaggerOperation("Send")]
         [SwaggerResponse(statusCode: 500, type: typeof(InlineResponse500), description: "Ошибка сервера")]
         [SwaggerResponse(statusCode: 503, type: typeof(InlineResponse500), description: "Ошибка сервера")]
-        public virtual IActionResult DialogUserIdSendPost([FromRoute][Required]string userId, [FromBody]UserIdSendBody body)
-        { 
+        public virtual IActionResult Send([FromRoute(Name = "user_id")][Required] string userId, [FromBody] UserIdSendBody body)
+        {
+            const string sql =
+                "INSERT INTO public.dialogs(user_id, to_user_id, \"text\", create_date) VALUES(@p0, @p1, @p2, now())";
+            _repository.Execute(sql, User.GetUserId(), Guid.Parse(userId), body.Text);
+
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200);
 
@@ -103,7 +124,7 @@ namespace Otus.Highload.Controllers
             //TODO: Uncomment the next line to return response 503 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(503, default(InlineResponse500));
 
-            throw new NotImplementedException();
+            return Ok();
         }
 
     }

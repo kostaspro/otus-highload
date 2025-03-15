@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Otus.Highload.Data;
+using Otus.Highload.Dialogs;
 using Otus.Highload.Posts;
 using Otus.Highload.Users;
 
@@ -25,9 +26,12 @@ namespace Otus.Highload.EFCore
                 .ToTable(nameof(Users).ToLower())
                 .Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()");
 
+            modelBuilder.Entity<UserEntity>().HasMany<PostEntity>().WithOne().HasForeignKey(k => k.UserId);
+
             modelBuilder.Entity<PostEntity>()
                 .ToTable(nameof(Posts).ToLower())
-                .Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()");
+                .Property(x => x.Id)
+                .HasDefaultValueSql("gen_random_uuid()");
 
             modelBuilder.Entity<UserFriendEntity>()
                 .ToTable("user_friends");
@@ -37,6 +41,18 @@ namespace Otus.Highload.EFCore
 
             modelBuilder.Entity<UserEntity>().HasIndex(x => new { x.Name, x.Surname })
                 .HasOperators("text_pattern_ops", "text_pattern_ops");
+
+            modelBuilder.Entity<DialogEntity>()
+                .ToTable("dialogs");
+
+            modelBuilder.Entity<DialogEntity>()
+                .Property(x => x.Id).UseIdentityColumn();
+
+            modelBuilder.Entity<DialogEntity>()
+                .HasKey(x => new { x.Id, x.ToUserId });
+
+            modelBuilder.Entity<DialogEntity>()
+                .HasIndex(x => new { x.UserId, x.ToUserId });
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

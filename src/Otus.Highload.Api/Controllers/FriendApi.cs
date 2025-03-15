@@ -6,19 +6,19 @@ using System.ComponentModel.DataAnnotations;
 using System;
 using Otus.Highload.Extensions;
 using Hangfire;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Otus.Highload.Controllers
 {
     [ApiController]
+    [Authorize]
     public class FriendApi : ControllerBase
     {
         private readonly IRepository _repository;
-        private readonly FeedManager _feedManager;
 
-        public FriendApi(IRepository repository, FeedManager feedManager)
+        public FriendApi(IRepository repository)
         {
             _repository = repository;
-            _feedManager = feedManager;
         }
 
         /// <summary>
