@@ -9,11 +9,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Otus.Highload.Extensions;
 using Hangfire;
-using Hangfire.Common;
 using Otus.Highload.Posts;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Otus.Highload.Controllers
 {
+    [ApiController]
+    [Authorize]
     public class PostApiController : ControllerBase
     {
         private readonly IRepository _repository;
