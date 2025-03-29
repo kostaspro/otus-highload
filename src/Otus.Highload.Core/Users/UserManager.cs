@@ -1,4 +1,6 @@
-﻿namespace Otus.Highload.Users
+﻿using Otus.Highload.Posts;
+
+namespace Otus.Highload.Users
 {
     public class UserManager
     {
@@ -22,11 +24,11 @@ VALUES(@p0, @p1, @p2, @p3, 1, @p4, @p5, @p6);";
             return id;
         }
 
-        public bool Find(string id, string pass)
+        public UserEntity? Find(string id, string pass)
         {
             var password = _passwordHasher.Hash(pass);
-            const string sql = "SELECT 1 FROM users WHERE id = @p0 AND password = @p1";
-            var res = _repository.Query<int>(sql, Guid.Parse(id), password).Any();
+            const string sql = "SELECT * FROM users WHERE id = @p0 AND password = @p1";
+            var res = _repository.Query<UserEntity>(sql, Guid.Parse(id), password).FirstOrDefault();
             return res;
         }
     }

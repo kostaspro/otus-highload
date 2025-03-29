@@ -10,5 +10,6 @@
         public string Biography { get; set; }
         public string City { get; set; }
         public string Password { get; set; }
+        public bool? IsCelebrity { get; set; }
     }
 }

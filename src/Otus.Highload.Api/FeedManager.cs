@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
+using EasyNetQ;
 using Hangfire;
 using Microsoft.Extensions.Caching.Distributed;
+using Otus.Highload.Controllers;
 using Otus.Highload.Models;
 using Otus.Highload.Posts;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Otus.Highload
 {
@@ -15,17 +17,36 @@ namespace Otus.Highload
     {
         private readonly IRepository _repository;
         private readonly IDistributedCache _cache;
+        private readonly IBus _bus;
         private static TimeSpan FeedExpiration = TimeSpan.FromDays(1);
 
         private static Func<Guid, string> CacheKey = guid => $"feed_cache_{guid}";
 
-        public FeedManager(IRepository repository, IDistributedCache cache)
+        public FeedManager(IRepository repository, IDistributedCache cache, IBus bus)
         {
             _repository = repository;
             _cache = cache;
+            _bus = bus;
         }
-        
-        [JobDisplayName("Update feed: post - {0}")]        
+
+        [JobDisplayName("Updating feed for post: {0}")]
+        public async Task CreatedPostAsync(Post post)
+        {
+            const string usersSql = "select uf.user_id from user_friends uf where uf.friend_id =@p0";
+            var users = _repository.Query<Guid>(usersSql, Guid.Parse(post.AuthorUserId)).ToList();
+
+            foreach (var user in users)
+            {
+                await _bus.PubSub.PublishAsync(new PostedPost
+                {
+                    PostId = post.Id,
+                    PostText = post.Text,
+                    UserId = post.AuthorUserId
+                }, PostWebSocketController.GetTopic(user.ToString()));
+            }
+        }
+
+        [JobDisplayName("Update feed: post - {0}")]
         public async Task Update(Post post, bool isDeleted = false)
         {
             const string usersSql = "select uf.user_id from user_friends uf where uf.friend_id =@p0";
@@ -56,6 +77,33 @@ namespace Otus.Highload
                         SlidingExpiration = FeedExpiration
                     });
             }
+        }
+
+        [JobDisplayName("Update feed: user - {1}")]
+        public async Task UpdateAsync(Post post, Guid userId, bool isDeleted = false)
+        {
+            var feedData = await _cache.GetStringAsync(CacheKey(userId)) ?? "[]";
+            var feed = JsonSerializer.Deserialize<List<Post>>(feedData);
+
+            var change = feed.FirstOrDefault(x => x.Id == post.Id);
+            if (change == null)
+            {
+                feed.Insert(0, post);
+            }
+            else if (isDeleted)
+            {
+                feed.Remove(change);
+            }
+            else
+            {
+                change.Text = post.Text;
+            }
+            var res = feed.Take(1000).ToArray();
+            await _cache.SetAsync(CacheKey(userId), Encoding.UTF8.GetBytes(JsonSerializer.Serialize(res)),
+                new DistributedCacheEntryOptions
+                {
+                    SlidingExpiration = FeedExpiration
+                });
         }
 
         [JobDisplayName("Update feed: all")]

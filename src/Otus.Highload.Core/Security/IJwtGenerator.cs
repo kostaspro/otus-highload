@@ -1,6 +1,8 @@
+using Otus.Highload.Users;
+
 namespace Otus.Highload.Security;
 
 public interface IJwtGenerator
 {
-    string CreateToken(string userId);
+    string CreateToken(UserEntity user);
 }

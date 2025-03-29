@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Otus.Highload.EFCore", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Otus.Highload.Core", "src\Otus.Highload.Core\Otus.Highload.Core.csproj", "{3A5B67BB-17F2-4CD7-933C-D499D4B3560F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Otus.Highload.ClientWebSocket", "src\Otus.Highload.ClientWebSocket\Otus.Highload.ClientWebSocket.csproj", "{09261A56-1F79-9520-D5CF-B35BE51E0C1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,8 +29,15 @@ Global
 		{3A5B67BB-17F2-4CD7-933C-D499D4B3560F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A5B67BB-17F2-4CD7-933C-D499D4B3560F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A5B67BB-17F2-4CD7-933C-D499D4B3560F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09261A56-1F79-9520-D5CF-B35BE51E0C1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09261A56-1F79-9520-D5CF-B35BE51E0C1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09261A56-1F79-9520-D5CF-B35BE51E0C1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09261A56-1F79-9520-D5CF-B35BE51E0C1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FAA8BD8B-7919-4714-A196-BFA02A663446}
 	EndGlobalSection
 EndGlobal

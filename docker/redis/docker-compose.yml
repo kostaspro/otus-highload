@@ -11,8 +11,7 @@ services:
     ports:
       - '6379:6379'
     volumes:
-      - 'redis_data:/bitnami/redis/data'
-    profiles: [redis]          
+      - 'redis_data:/bitnami/redis/data'       
 
 volumes:
   redis_data:

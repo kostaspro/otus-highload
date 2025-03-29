@@ -126,6 +126,8 @@ namespace Otus.Highload
                 options.InstanceName = "local";
             });
 
+            services.RegisterEasyNetQ(Configuration.GetConnectionString("RabbitMQ"));
+
             services
                 .AddSwaggerGen(c =>
                 {
@@ -188,6 +190,10 @@ namespace Otus.Highload
             // app.UseStaticFiles();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseWebSockets(new WebSocketOptions
+            {
+                KeepAliveInterval = TimeSpan.FromSeconds(10)
+            });
 
             app.UseHealthChecks("/health");
 

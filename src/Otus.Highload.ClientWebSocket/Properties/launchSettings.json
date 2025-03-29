@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Otus.Highload.ClientWebSocket": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

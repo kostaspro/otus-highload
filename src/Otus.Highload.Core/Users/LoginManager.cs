@@ -14,9 +14,10 @@ public class LoginManager
     }
     public string Auth(string id, string password)
     {
-        if (_userManager.Find(id, password))
+        var user = _userManager.Find(id, password);
+        if (user != null)
         {
-            return _jwtGenerator.CreateToken(id);
+            return _jwtGenerator.CreateToken(user);
         }
 
         throw new InvalidOperationException($"User with id {id} not found");

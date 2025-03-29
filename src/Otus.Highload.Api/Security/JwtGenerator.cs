@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Otus.Highload.Users;
 
 namespace Otus.Highload.Security;
 
@@ -17,9 +18,13 @@ public class JwtGenerator : IJwtGenerator
         _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"]));
     }
 
-    public string CreateToken(string userId)
+    public string CreateToken(UserEntity user)
     {
-        var claims = new List<Claim> { new Claim(JwtRegisteredClaimNames.NameId, userId) };
+        var claims = new List<Claim> { new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()) };
+        if (user.IsCelebrity == true)
+        {
+            claims.Add(new Claim(AppClaimTypes.IsCelebrity, string.Empty));
+        }
 
         var credentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256);
 

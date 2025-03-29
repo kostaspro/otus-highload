@@ -3,7 +3,8 @@ name: highload
 include:
  - patroni/docker-compose.yml
  - redis/docker-compose.yml
- - citus/docker-compose.yml 
+ - citus/docker-compose.yml
+ - rabbitmq/docker-compose.yml 
 
 services:
   db:
@@ -37,6 +38,7 @@ services:
       - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__Default=User ID=${PG_USERNAME};Password=${PG_PASSWORD};Host=${PG_HOST};Port=${PG_PORT};Database=${PG_USERNAME};Pooling=true;
       - ConnectionStrings__Redis=host.docker.internal
+      - ConnectionStrings__RabbitMQ=host=host.docker.internal;username=${RABBITMQ_DEFAULT_USER};password=${RABBITMQ_DEFAULT_PASS}
     ports:
       - 5000:80
     healthcheck:
@@ -48,7 +50,18 @@ services:
     profiles: [postgres]      
     depends_on:
       db:
-        condition: service_healthy     
+        condition: service_healthy
+        
+  ws-client:
+    build: 
+      context: ./..
+      dockerfile: ./src/Otus.Highload.ClientWebSocket/Dockerfile
+    image: highload-ws-client
+    environment:
+      - ConnectionStrings__Server=host.docker.internal:5000 
+    depends_on:
+      api:
+        condition: service_healthy        
         
   api-citus:
     <<: *api    
@@ -78,7 +91,7 @@ services:
     command: psql postgresql://${PG_USERNAME}:${PG_PASSWORD}@${PG_HOST}:${PG_PORT}/${PG_USERNAME}  -a -f "/src/import_script.sql"
     volumes:
        - ./loader/import_script.sql:/src/import_script.sql 
-       - ./loader/users_202502091738.zip:/src/users.zip
+       - ./loader/users_202503291621.zip:/src/users.zip
        - ./loader/user_friends_202503091840.zip:/src/user_friends.zip       
        - ./loader/posts_202503091841.zip:/src/posts.zip
        - ./loader/dialogs_202503151919.zip:/src/dialogs.zip

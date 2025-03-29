@@ -22,13 +22,13 @@ namespace Otus.Highload.Controllers
         private readonly FeedManager _feedManager;
         private readonly IBackgroundJobClient _backgroundJobClient;
 
-        public PostApiController(IRepository repository, FeedManager feedManager, IBackgroundJobClient backgroundJobClient)
+        public PostApiController(IRepository repository, FeedManager feedManager,
+            IBackgroundJobClient backgroundJobClient)
         {
             _repository = repository;
             _feedManager = feedManager;
             _backgroundJobClient = backgroundJobClient;
         }
-
 
         /// <summary>
         /// Создать пост
@@ -51,7 +51,11 @@ namespace Otus.Highload.Controllers
             const string sql = "INSERT INTO public.posts(user_id, \"text\", create_date) VALUES(@p0, @p1, now()) RETURNING id";
             var id = _repository.Query<Guid>(sql, User.GetUserId(), body.Text).AsEnumerable().First();
 
-            UpdateFeed(new Post {Id = id.ToString(), AuthorUserId = User.GetUserId().ToString(), Text = body.Text });
+            if (!User.IsCelebrity())
+            {
+                _backgroundJobClient.Enqueue<FeedManager>(x => x.CreatedPostAsync(new Post
+                    { Id = id.ToString(), AuthorUserId = User.GetUserId().ToString(), Text = body.Text }));
+            }
 
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200, default(string));
