@@ -33,8 +33,10 @@ using Otus.Highload.Data;
 using Otus.Highload.EFCore;
 using Otus.Highload.EFCore.Migrations;
 using Otus.Highload.Filters;
+using Otus.Highload.Lua;
 using Otus.Highload.Security;
 using Otus.Highload.Users;
+using StackExchange.Redis;
 
 namespace Otus.Highload
 {
@@ -125,6 +127,12 @@ namespace Otus.Highload
                 options.Configuration = Configuration.GetConnectionString("Redis");
                 options.InstanceName = "local";
             });
+
+            services.AddSingleton<IConnectionMultiplexer>(cfg => ConnectionMultiplexer.Connect(Configuration.GetConnectionString("Redis")!));
+
+            services.AddScoped(cfg => cfg.GetRequiredService<IConnectionMultiplexer>().GetDatabase());
+
+            services.AddSingleton<DialogModuleLoader>();
 
             services.RegisterEasyNetQ(Configuration.GetConnectionString("RabbitMQ"));
 

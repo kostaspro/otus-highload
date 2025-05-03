@@ -13,6 +13,9 @@
     <UserSecretsId>aa409760-05ba-4d85-a02d-caa869df472e</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Lua\dialog.lua" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="EasyNetQ.DI.Microsoft" Version="7.8.0" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.18" />
     <PackageReference Include="Hangfire.PostgreSql" Version="1.20.10" />
@@ -32,6 +35,9 @@
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Lua\dialog.lua" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Otus.Highload.EFCore\Otus.Highload.EFCore.csproj" />

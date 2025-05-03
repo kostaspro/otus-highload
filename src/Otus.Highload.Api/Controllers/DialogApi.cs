@@ -14,10 +14,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Otus.Highload.Attributes;
 using Otus.Highload.Dialogs;
 using Otus.Highload.Extensions;
 using Otus.Highload.Models;
+using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Otus.Highload.Controllers
@@ -30,10 +32,12 @@ namespace Otus.Highload.Controllers
     public class DialogApiController : ControllerBase
     {
         private readonly IRepository _repository;
+        private readonly IDatabase _redis;
 
-        public DialogApiController(IRepository repository)
+        public DialogApiController(IRepository repository, IDatabase redis)
         {
             _repository = repository;
+            _redis = redis;
         }
         /// <summary>
         /// Получение диалога между двумя пользователями
@@ -68,17 +72,26 @@ namespace Otus.Highload.Controllers
             //TODO: Uncomment the next line to return response 503 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(503, default(InlineResponse500));
 
-            const string sql = @"SELECT * FROM dialogs WHERE (user_id = @p0 AND to_user_id = @p1) OR (user_id = @p1 AND to_user_id = @p0)";
-            var result = _repository.Query<DialogEntity>(sql, User.GetUserId(), Guid.Parse(userId))
-                .OrderBy(x => x.CreateDate).Select(x => new DialogMessage
-                {
-                    From = x.UserId.ToString(),
-                    To = x.ToUserId.ToString(),
-                    Text = x.Text
-                }).ToList();
 
-            //string exampleJson = null;
-            //exampleJson = "[ {\n  \"from\" : \"from\",\n  \"text\" : \"Привет, как дела?\"\n}, {\n  \"from\" : \"from\",\n  \"text\" : \"Привет, как дела?\"\n} ]";
+            //const string sql = @"SELECT * FROM dialogs WHERE (user_id = @p0 AND to_user_id = @p1) OR (user_id = @p1 AND to_user_id = @p0)";
+            //var result = _repository.Query<DialogEntity>(sql, User.GetUserId(), Guid.Parse(userId))
+            //    .OrderBy(x => x.CreateDate).Select(x => new DialogMessage
+            //    {
+            //        From = x.UserId.ToString(),
+            //        To = x.ToUserId.ToString(),
+            //        Text = x.Text
+            //    }).ToList();
+            
+            var dialogId = DialogRedisEntity.GetId(User.GetUserId(), Guid.Parse(userId));
+            var res = (RedisResult[])_redis.Execute("FCALL", "get_dialogs", 0, $"*\"Id\":{dialogId}*");
+
+            var result = res.Where((redisResult, i) => i % 2 == 0)
+            .Select(x => JsonConvert.DeserializeObject<DialogRedisEntity>((string)x)).Select(x => new DialogMessage
+            {
+                From = x.UserId.ToString(),
+                To = x.ToUserId.ToString(),
+                Text = x.Text
+            }).ToList();
 
             //var example = exampleJson != null
             //? JsonConvert.DeserializeObject<List<DialogMessage>>(exampleJson)
@@ -105,9 +118,18 @@ namespace Otus.Highload.Controllers
         [SwaggerResponse(statusCode: 503, type: typeof(InlineResponse500), description: "Ошибка сервера")]
         public virtual IActionResult Send([FromRoute(Name = "user_id")][Required] string userId, [FromBody] UserIdSendBody body)
         {
-            const string sql =
-                "INSERT INTO public.dialogs(user_id, to_user_id, \"text\", create_date) VALUES(@p0, @p1, @p2, now())";
-            _repository.Execute(sql, User.GetUserId(), Guid.Parse(userId), body.Text);
+            //const string sql =
+            //    "INSERT INTO public.dialogs(user_id, to_user_id, \"text\", create_date) VALUES(@p0, @p1, @p2, now())";
+            //_repository.Execute(sql, User.GetUserId(), Guid.Parse(userId), body.Text);
+
+            var dialog = new DialogRedisEntity
+            {
+                Text = body.Text,
+                UserId = User.GetUserId(),
+                ToUserId = Guid.Parse(userId)
+            };
+
+            _redis.Execute("FCALL", "set_dialogs", 0, DateTime.Now.Ticks, JsonConvert.SerializeObject(dialog));
 
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200);
