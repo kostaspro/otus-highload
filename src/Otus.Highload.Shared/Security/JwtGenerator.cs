@@ -5,9 +5,10 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Otus.Highload.Security;
 using Otus.Highload.Users;
 
-namespace Otus.Highload.Security;
+namespace Otus.Highload;
 
 public class JwtGenerator : IJwtGenerator
 {

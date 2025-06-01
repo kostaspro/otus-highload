@@ -37,8 +37,8 @@ services:
       - ASPNETCORE_ENVIRONMENT="Development"
       - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__Default=User ID=${PG_USERNAME};Password=${PG_PASSWORD};Host=${PG_HOST};Port=${PG_PORT};Database=${PG_USERNAME};Pooling=true;
-      - ConnectionStrings__Redis=host.docker.internal
       - ConnectionStrings__RabbitMQ=host=host.docker.internal;username=${RABBITMQ_DEFAULT_USER};password=${RABBITMQ_DEFAULT_PASS}
+      - Dialogs__Url=http://api-dialogs
     ports:
       - 5000:80
     healthcheck:
@@ -51,6 +51,28 @@ services:
     depends_on:
       db:
         condition: service_healthy
+        
+  api-dialogs: &api-dialogs
+    build: 
+      context: ./..
+      dockerfile: ./src/Otus.Highload.Dialogs.Api/Dockerfile
+    image: highload-api-dialogs
+    environment:
+      - ASPNETCORE_ENVIRONMENT="Development"
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__Redis=host.docker.internal
+    ports:
+      - 5001:80
+    healthcheck:
+      test: curl --fail http://localhost/health || exit 1
+      interval: 60s
+      retries: 5
+      start_period: 20s
+      timeout: 10s      
+    profiles: [postgres]
+    depends_on:
+      redis:
+        condition: service_started      
         
   ws-client:
     build: 

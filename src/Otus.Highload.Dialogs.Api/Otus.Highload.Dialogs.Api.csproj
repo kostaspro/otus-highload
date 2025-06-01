@@ -1,17 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
   <PropertyGroup>
-    <Description>IO.Swagger</Description>
-    <Copyright>IO.Swagger</Copyright>
     <TargetFramework>net8.0</TargetFramework>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
-    <AssemblyName>$(MSBuildProjectName)</AssemblyName>
-    <PackageId>IO.Swagger</PackageId>
-    <RootNamespace>Otus.Highload</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Otus.Highload.Dialogs</RootNamespace>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <UserSecretsId>3f522c19-49b7-4c72-89ba-ab317dc39824</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
-    <UserSecretsId>aa409760-05ba-4d85-a02d-caa869df472e</UserSecretsId>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="..\Otus.Highload.Shared\Attributes\ValidateModelStateAttribute.cs" Link="Attributes\ValidateModelStateAttribute.cs" />
     <Compile Include="..\Otus.Highload.Shared\Extensions\ClaimsPrincipalExtensions.cs" Link="Extensions\ClaimsPrincipalExtensions.cs" />
@@ -19,16 +18,14 @@
     <Compile Include="..\Otus.Highload.Shared\Security\AppClaimTypes.cs" Link="Security\AppClaimTypes.cs" />
     <Compile Include="..\Otus.Highload.Shared\Security\JwtGenerator.cs" Link="Security\JwtGenerator.cs" />
   </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="EasyNetQ.DI.Microsoft" Version="7.8.0" />
-    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.18" />
-    <PackageReference Include="Hangfire.PostgreSql" Version="1.20.10" />
+    <EmbeddedResource Include="Lua\dialog.lua" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" Version="8.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
@@ -37,15 +34,17 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="7.2.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="7.2.0" />
   </ItemGroup>
+
   <ItemGroup>
-    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.4" />
-  </ItemGroup>
-  <ItemGroup>
+    <ProjectReference Include="..\Otus.Highload.Core\Otus.Highload.Core.csproj" />
     <ProjectReference Include="..\Otus.Highload.Dialogs.Api.Contracts\Otus.Highload.Dialogs.Api.Contracts.csproj" />
-    <ProjectReference Include="..\Otus.Highload.EFCore\Otus.Highload.EFCore.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <Folder Include="Extensions\" />
     <Folder Include="Filters\" />
+    <Folder Include="Attributes\" />
+    <Folder Include="Security\" />
   </ItemGroup>
+
 </Project>

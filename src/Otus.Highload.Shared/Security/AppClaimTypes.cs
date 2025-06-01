@@ -1,4 +1,4 @@
-﻿namespace Otus.Highload.Security
+﻿namespace Otus.Highload
 {
     public static class AppClaimTypes
     {

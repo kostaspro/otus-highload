@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>02814ce4-77eb-4f79-9cf1-fae8057c9462</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Otus.Highload.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Attributes\ValidateModelStateAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ClaimsPrincipalExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Filters\GeneratePathParamsValidationFilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Security\AppClaimTypes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Security\JwtGenerator.cs" />
+  </ItemGroup>
+</Project>

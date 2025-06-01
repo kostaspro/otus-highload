@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Otus.Highload.EFCore;
-using Otus.Highload.Lua;
 
 namespace Otus.Highload
 {
@@ -27,11 +26,6 @@ namespace Otus.Highload
             {
                 var db = scope.ServiceProvider.GetRequiredService<HighloadDbContext>();
                 db.Database.Migrate();
-            }
-
-            {
-                var loader = host.Services.GetRequiredService<DialogModuleLoader>();
-                loader.Initialize();
             }
 
             //using (var scope = host.Services.CreateScope())

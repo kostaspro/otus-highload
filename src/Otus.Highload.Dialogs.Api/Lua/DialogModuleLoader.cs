@@ -1,13 +1,12 @@
-﻿using StackExchange.Redis;
-using System.Reflection;
-using System.IO;
+﻿using System.Reflection;
+using StackExchange.Redis;
 
-namespace Otus.Highload.Lua
+namespace Otus.Highload.Dialogs.Lua
 {
     public class DialogModuleLoader
     {
         private readonly IDatabase _redis;
-        private static readonly string ResourceName = "Otus.Highload.Lua.dialog.lua";
+        private static readonly string ResourceName = "Otus.Highload.Dialogs.Lua.dialog.lua";
 
         public DialogModuleLoader(IConnectionMultiplexer redis)
         {

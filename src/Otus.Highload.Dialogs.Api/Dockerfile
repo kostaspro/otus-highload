@@ -2,11 +2,10 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER root
-RUN apt-get update && apt-get --assume-yes install curl
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
+EXPOSE 8081
 
 
 # This stage is used to build the service project
@@ -14,22 +13,21 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["NuGet.Config", "."]
-COPY ["src/Otus.Highload.Api/Otus.Highload.Api.csproj", "src/Otus.Highload.Api/"]
-COPY ["src/Otus.Highload.EFCore/Otus.Highload.EFCore.csproj", "src/Otus.Highload.EFCore/"]
+COPY ["src/Otus.Highload.Dialogs.Api/Otus.Highload.Dialogs.Api.csproj", "src/Otus.Highload.Dialogs.Api/"]
 COPY ["src/Otus.Highload.Core/Otus.Highload.Core.csproj", "src/Otus.Highload.Core/"]
 COPY ["src/Otus.Highload.Dialogs.Api.Contracts/Otus.Highload.Dialogs.Api.Contracts.csproj", "src/Otus.Highload.Dialogs.Api.Contracts/"]
-RUN dotnet restore "./src/Otus.Highload.Api/Otus.Highload.Api.csproj"
+RUN dotnet restore "./src/Otus.Highload.Dialogs.Api/Otus.Highload.Dialogs.Api.csproj"
 COPY . .
-WORKDIR "/src/src/Otus.Highload.Api"
-RUN dotnet build "./Otus.Highload.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/src/Otus.Highload.Dialogs.Api"
+RUN dotnet build "./Otus.Highload.Dialogs.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Otus.Highload.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Otus.Highload.Dialogs.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Otus.Highload.Api.dll"]
+ENTRYPOINT ["dotnet", "Otus.Highload.Dialogs.Api.dll"]
