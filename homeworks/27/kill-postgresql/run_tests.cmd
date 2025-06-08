@@ -1,0 +1,1 @@
+call jmeter -Jthreads=1000 -n -t ../test_load.jmx -l 1000-threads-result.jtl

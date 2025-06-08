@@ -1,0 +1,50 @@
+services:
+  postgresql-master:
+    image: docker.io/bitnami/postgresql:17
+    profiles: [postgres-replication]
+    ports:
+      - 6543:5432
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+      - POSTGRESQL_USERNAME=${PG_USERNAME}
+      - POSTGRESQL_PASSWORD=${PG_PASSWORD}
+      - POSTGRESQL_DATABASE=${PG_USERNAME}
+      - ALLOW_EMPTY_PASSWORD=yes
+    healthcheck:
+      test: pg_isready -U ${PG_USERNAME}
+      interval: 5s
+      retries: 6
+      start_period: 1s      
+  
+  postgresql-slave-1: &postgresql-slave
+    image: docker.io/bitnami/postgresql:17
+    profiles: [postgres-replication]
+    hostname: postgresql-slave-1   
+    depends_on:
+      - postgresql-master
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+      - POSTGRESQL_MASTER_HOST=postgresql-master
+      - POSTGRESQL_PASSWORD=${PG_PASSWORD}
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+      - ALLOW_EMPTY_PASSWORD=yes
+      
+  postgresql-slave-2:
+    <<: *postgresql-slave
+    hostname: postgresql-slave-2    
+
+  postgresql-slave-lb:
+    image: haproxy
+    volumes:
+       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg   
+    ports:
+        - "6544:5001"
+        - "7000:7000"
+    profiles: [postgres-replication]
+    depends_on:
+      - postgresql-slave-1 
+      - postgresql-slave-2      
