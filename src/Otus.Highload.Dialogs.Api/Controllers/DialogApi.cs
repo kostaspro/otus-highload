@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Otus.Highload.Attributes;
+using Otus.Highload.CounterClient;
 using Otus.Highload.Dialogs.Api.Contracts;
 using Otus.Highload.Dialogs.Api.Contracts.Models;
 using Otus.Highload.Dialogs.Models;
@@ -30,11 +31,14 @@ namespace Otus.Highload.Dialogs.Controllers
     public class DialogApiController : ControllerBase, IDialogApi
     {
         private readonly IDatabase _redis;
+        private readonly Counter.CounterClient _counterClient;
 
-        public DialogApiController(IDatabase redis)
+        public DialogApiController(IDatabase redis, Counter.CounterClient counterClient)
         {
             _redis = redis;
+            _counterClient = counterClient;
         }
+
         /// <summary>
         /// Получение диалога между двумя пользователями
         /// </summary>
@@ -48,7 +52,8 @@ namespace Otus.Highload.Dialogs.Controllers
         [Route("/dialog/{user_id}/list")]
         [ValidateModelState]
         [SwaggerOperation("List")]
-        [SwaggerResponse(statusCode: 200, type: typeof(List<DialogMessage>), description: "Диалог между двумя пользователями")]
+        [SwaggerResponse(statusCode: 200, type: typeof(List<DialogMessage>),
+            description: "Диалог между двумя пользователями")]
         [SwaggerResponse(statusCode: 500, type: typeof(InlineResponse500), description: "Ошибка сервера")]
         [SwaggerResponse(statusCode: 503, type: typeof(InlineResponse500), description: "Ошибка сервера")]
         public async Task<List<DialogMessage>> ListAsync([FromRoute(Name = "user_id")] string userId)
@@ -78,16 +83,17 @@ namespace Otus.Highload.Dialogs.Controllers
             //        Text = x.Text
             //    }).ToList();
 
-            var dialogId = DialogRedisEntity.GetId(User.GetUserId(), Guid.Parse(userId));
-            var res = (RedisResult[])_redis.Execute("FCALL", "get_dialogs", 0, $"*\"Id\":{dialogId}*");
+            var dialogKey = RedisKeysHelper.GetDialogKey(User.GetUserId(), Guid.Parse(userId));
 
-            var result = res.Where((redisResult, i) => i % 2 == 0)
-            .Select(x => JsonConvert.DeserializeObject<DialogRedisEntity>((string)x)).Select(x => new DialogMessage
-            {
-                From = x.UserId.ToString(),
-                To = x.ToUserId.ToString(),
-                Text = x.Text
-            }).ToList();
+            var res = (RedisResult[])_redis.Execute("FCALL", "get_dialogs", 1, dialogKey, 0, -1);
+
+            var result = res.Select(x => JsonConvert.DeserializeObject<DialogRedisEntity>((string)x)).Select(x =>
+                new DialogMessage
+                {
+                    From = x.UserId.ToString(),
+                    To = x.ToUserId.ToString(),
+                    Text = x.Text
+                }).ToList();
 
             //var example = exampleJson != null
             //? JsonConvert.DeserializeObject<List<DialogMessage>>(exampleJson)
@@ -112,7 +118,8 @@ namespace Otus.Highload.Dialogs.Controllers
         [SwaggerOperation("Send")]
         [SwaggerResponse(statusCode: 500, type: typeof(InlineResponse500), description: "Ошибка сервера")]
         [SwaggerResponse(statusCode: 503, type: typeof(InlineResponse500), description: "Ошибка сервера")]
-        public async Task SendAsync([FromRoute(Name = "user_id")][Required] string userId, [FromBody] UserIdSendBody body)
+        public async Task SendAsync([FromRoute(Name = "user_id")][Required] string userId,
+            [FromBody] UserIdSendBody body)
         {
             //const string sql =
             //    "INSERT INTO public.dialogs(user_id, to_user_id, \"text\", create_date) VALUES(@p0, @p1, @p2, now())";
@@ -124,8 +131,23 @@ namespace Otus.Highload.Dialogs.Controllers
                 UserId = User.GetUserId(),
                 ToUserId = Guid.Parse(userId)
             };
+            var dialogKey = RedisKeysHelper.GetDialogKey(User.GetUserId(), Guid.Parse(userId));
+            _redis.Execute("FCALL", "set_dialogs", 1, dialogKey, DateTime.Now.Ticks,
+                JsonConvert.SerializeObject(dialog));
+            var unreadKey = RedisKeysHelper.GetUnreadKey(dialogKey, Guid.Parse(userId));
+            try
+            {
+                await _counterClient.IncrementAsync(new CounterRequest
+                    { Id = unreadKey });
+            }
+            catch (Exception)
+            {
+                _redis.Execute("FCALL", "rem_dialogs", 1, dialogKey, JsonConvert.SerializeObject(dialog));
 
-            _redis.Execute("FCALL", "set_dialogs", 0, DateTime.Now.Ticks, JsonConvert.SerializeObject(dialog));
+                await _counterClient.DecrementAsync(new CounterRequest { Id = unreadKey });
+
+                throw new Exception("Операция отправки сообщения отменена, сервис счетчиков не доступен");
+            }
 
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200);
@@ -143,5 +165,22 @@ namespace Otus.Highload.Dialogs.Controllers
             // return StatusCode(503, default(InlineResponse500));
         }
 
+        [HttpGet]
+        [Route("/dialog/{user_id}/unread")]
+        [ValidateModelState]
+        [SwaggerOperation("List")]
+        [SwaggerResponse(statusCode: 200, type: typeof(List<DialogMessage>),
+            description: "Количество непрочитанных сообщений между двумя пользователями")]
+        [SwaggerResponse(statusCode: 500, type: typeof(InlineResponse500), description: "Ошибка сервера")]
+        [SwaggerResponse(statusCode: 503, type: typeof(InlineResponse500), description: "Ошибка сервера")]
+        public async Task<DialogUnread> UnreadAsync([FromRoute(Name = "user_id")] string userId)
+        {
+            var unreadKey = RedisKeysHelper.GetUnreadKey(RedisKeysHelper.GetDialogKey(User.GetUserId(), Guid.Parse(userId)), User.GetUserId());
+            return new DialogUnread
+            {
+                Count = (await _counterClient.CurrentAsync(new CounterRequest
+                { Id = unreadKey })).Value
+            };
+        }
     }
 }

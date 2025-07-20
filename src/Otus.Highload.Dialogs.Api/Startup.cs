@@ -16,6 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using Otus.Highload.CounterClient;
 using Otus.Highload.Dialogs.Lua;
 using Otus.Highload.Filters;
 using Otus.Highload.Security;
@@ -102,6 +103,11 @@ namespace Otus.Highload.Dialogs
             services.AddScoped(cfg => cfg.GetRequiredService<IConnectionMultiplexer>().GetDatabase());
 
             services.AddSingleton<DialogModuleLoader>();
+
+            services.AddGrpcClient<Counter.CounterClient>(options =>
+            {
+                options.Address = new Uri(Configuration["Counter"]);
+            });
 
             services
                 .AddSwaggerGen(c =>

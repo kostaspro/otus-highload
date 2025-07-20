@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option csharp_namespace = "Otus.Highload.CounterClient";
+
+package counter;
+
+service Counter {
+  rpc Increment (CounterRequest) returns (CounterReply);
+  rpc Decrement (CounterRequest) returns (CounterReply);
+  rpc Current (CounterRequest) returns (CounterReply);
+}
+
+message CounterRequest {
+  string id = 1;
+}
+
+message CounterReply {
+  int64 value = 1;
+}

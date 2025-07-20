@@ -22,6 +22,12 @@ public class DialogApiClient : IDialogApi
 
     public async Task SendAsync(string userId, UserIdSendBody body)
     {
-        await HttpClient.PostAsJsonAsync($"/dialog/{userId}/send", body);
+        var resp = await HttpClient.PostAsJsonAsync($"/dialog/{userId}/send", body);
+        resp.EnsureSuccessStatusCode();
+    }
+
+    public async Task<DialogUnread> UnreadAsync(string userId)
+    {
+        return await HttpClient.GetFromJsonAsync<DialogUnread>($"dialog/{userId}/unread");
     }
 }

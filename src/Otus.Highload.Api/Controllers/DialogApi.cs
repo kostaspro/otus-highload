@@ -128,5 +128,17 @@ namespace Otus.Highload.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        [Route("/dialog/{user_id}/unread")]
+        [ValidateModelState]
+        [SwaggerOperation("List")]
+        [SwaggerResponse(statusCode: 200, type: typeof(List<DialogMessage>),
+            description: "Количество непрочитанных сообщений между двумя пользователями")]
+        [SwaggerResponse(statusCode: 500, type: typeof(InlineResponse500), description: "Ошибка сервера")]
+        [SwaggerResponse(statusCode: 503, type: typeof(InlineResponse500), description: "Ошибка сервера")]
+        public async Task<DialogUnread> UnreadAsync([FromRoute(Name = "user_id")] string userId)
+        {
+            return await DialogApi.UnreadAsync(userId);
+        }
     }
 }

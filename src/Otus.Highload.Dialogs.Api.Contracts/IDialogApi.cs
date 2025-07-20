@@ -6,4 +6,5 @@ public interface IDialogApi
 {
     Task<List<DialogMessage>> ListAsync(string userId);
     Task SendAsync(string userId, UserIdSendBody body);
+    Task<DialogUnread> UnreadAsync(string userId);
 }
