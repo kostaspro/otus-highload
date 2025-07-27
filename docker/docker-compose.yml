@@ -5,7 +5,11 @@ include:
  - redis/docker-compose.yml
  - citus/docker-compose.yml
  - rabbitmq/docker-compose.yml
- - simple-replication/docker-compose.yml 
+ - simple-replication/docker-compose.yml
+ - prometheus/docker-compose.yml
+ - grafana/docker-compose.yml
+ - zabbix/docker-compose.yml
+ 
 
 services:
   db:
@@ -60,7 +64,7 @@ services:
     image: highload-api-dialogs
     environment:
       - ASPNETCORE_ENVIRONMENT="Development"
-      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_URLS=http://+:80;http://+:5067
       - ConnectionStrings__Redis=host.docker.internal
       - Counter=http://counter
     ports:

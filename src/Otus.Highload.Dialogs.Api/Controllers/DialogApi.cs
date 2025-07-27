@@ -16,6 +16,7 @@ using Otus.Highload.Attributes;
 using Otus.Highload.CounterClient;
 using Otus.Highload.Dialogs.Api.Contracts;
 using Otus.Highload.Dialogs.Api.Contracts.Models;
+using Otus.Highload.Dialogs.Infrastructure.Metrics;
 using Otus.Highload.Dialogs.Models;
 using Otus.Highload.Extensions;
 using StackExchange.Redis;
@@ -32,11 +33,13 @@ namespace Otus.Highload.Dialogs.Controllers
     {
         private readonly IDatabase _redis;
         private readonly Counter.CounterClient _counterClient;
+        private readonly DialogMetrics _meters;
 
-        public DialogApiController(IDatabase redis, Counter.CounterClient counterClient)
+        public DialogApiController(IDatabase redis, Counter.CounterClient counterClient, DialogMetrics meters)
         {
             _redis = redis;
             _counterClient = counterClient;
+            _meters = meters;
         }
 
         /// <summary>
@@ -134,6 +137,7 @@ namespace Otus.Highload.Dialogs.Controllers
             var dialogKey = RedisKeysHelper.GetDialogKey(User.GetUserId(), Guid.Parse(userId));
             _redis.Execute("FCALL", "set_dialogs", 1, dialogKey, DateTime.Now.Ticks,
                 JsonConvert.SerializeObject(dialog));
+
             var unreadKey = RedisKeysHelper.GetUnreadKey(dialogKey, Guid.Parse(userId));
             try
             {
@@ -143,11 +147,17 @@ namespace Otus.Highload.Dialogs.Controllers
             catch (Exception)
             {
                 _redis.Execute("FCALL", "rem_dialogs", 1, dialogKey, JsonConvert.SerializeObject(dialog));
-
+                _meters.ErrorMessage(dialog.UserId.ToString());
                 await _counterClient.DecrementAsync(new CounterRequest { Id = unreadKey });
+
+       
 
                 throw new Exception("Операция отправки сообщения отменена, сервис счетчиков не доступен");
             }
+
+            _meters.AddMessage(userId);
+
+            _meters.DurationMessagePerUser(dialog.Text.Length);
 
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200);

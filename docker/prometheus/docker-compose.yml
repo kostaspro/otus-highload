@@ -1,0 +1,12 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./targets:/etc/prometheus/targets
+      - ./alert_rules.yml:/etc/prometheus/alert_rules.yml
+      - ./data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"

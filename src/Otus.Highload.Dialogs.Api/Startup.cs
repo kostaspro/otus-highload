@@ -16,7 +16,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using OpenTelemetry.Metrics;
 using Otus.Highload.CounterClient;
+using Otus.Highload.Dialogs.Infrastructure.Metrics;
 using Otus.Highload.Dialogs.Lua;
 using Otus.Highload.Filters;
 using Otus.Highload.Security;
@@ -69,7 +71,7 @@ namespace Otus.Highload.Dialogs
                 l.RequestHeaders.Add("x-request-id");
                 l.RequestHeaders.Add("authorization");
             });
-            
+
 
             services.AddHealthChecks().AddCheck("default", () => HealthCheckResult.Healthy());
 
@@ -155,6 +157,13 @@ namespace Otus.Highload.Dialogs
                 });
 
             services.AddSwaggerGenNewtonsoftSupport();
+
+            services.AddSingleton<DialogMetrics>();
+
+            services.AddOpenTelemetry()
+             .WithMetrics(builder => builder
+                 .AddMeter(Configuration.GetValue<string>("DialogMeterName"))
+                 .AddPrometheusExporter());
         }
 
         /// <summary>
@@ -205,6 +214,9 @@ namespace Otus.Highload.Dialogs
 
                 app.UseHsts();
             }
+
+            app.UseOpenTelemetryPrometheusScrapingEndpoint(context =>
+                context.Request.Path == "/metrics" && context.Connection.LocalPort == 5067);
         }
     }
 }
